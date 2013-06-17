@@ -41,7 +41,6 @@ class articleInfo
 {
     public:
     std::string Title;
-    std::string Data;
     int Hash;
     int index;
 
@@ -50,17 +49,6 @@ class articleInfo
         return Title<a.Title?true:false;
     }
 };
-
-int djb2(const char *str)
-{
-    unsigned long hash = 5381;
-    int c;
-
-    while (c = *str++)
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-
-    return hash;
-}
 
 int adler32(std::string buf)         //Adler32 Hash Function. Used to hash the BLOB data obtained from each article.
 {
@@ -104,32 +92,36 @@ int main(int argc, char **argv)
 
         //Scanning Data from files, generating hash
         zim::Blob tempBlob;      //Temporary data storage for storing the BLOB of an article.
-        std::string tempString; //Temporary data storage, in oder to convart the blob
+        std::string tempString; //Temporary data storage, in oder to convert the blob
         articleInfo tempArticle; //Temporary data storage, in order to push to data_1 and data_2 lists.
         int counter=0;
-
+        int length=0;
         //Parsing through file_1
         for (zim::File::const_iterator it = file_1.begin(); it != file_1.end(); ++it)
         {
             tempBlob=it->getData();
-            //tempString=tempBlob.data();
-            tempArticle.Hash=djb2(tempBlob.data());
-            //tempArticle.Hash=adler32(tempString);
-            tempArticle.Data=tempBlob.data();
+            length=tempBlob.size();
+            tempString.clear();
+            for(int i=0; i<length; i++)
+                tempString+=tempBlob.data()[i];
+            tempArticle.Hash= adler32(tempString);
             tempArticle.Title=it->getTitle();
             tempArticle.index=counter;
             data_1.push_back(tempArticle);
             counter++;
         }
 
-        counter=0;
+
         //Parsing through file_2
+        counter=0;
         for (zim::File::const_iterator it = file_2.begin(); it != file_2.end(); ++it)
         {
             tempBlob=it->getData();
-            //tempString=tempBlob.data();
-            //tempArticle.Hash=adler32(tempString);
-            tempArticle.Hash=djb2(tempBlob.data());
+            length=tempBlob.size();
+            tempString.clear();
+            for(int i=0; i<length; i++)
+                tempString+=tempBlob.data()[i];
+            tempArticle.Hash= adler32(tempString);
             tempArticle.Title=it->getTitle();
             tempArticle.index=counter;
             data_2.push_back(tempArticle);
@@ -146,8 +138,7 @@ int main(int argc, char **argv)
         std::list<articleInfo>::iterator prev=data_1.begin();
         for(std::list<articleInfo>::iterator it=++prev;it!=data_1.end();++it)
         {
-            //if(it->Data==prev->Data)
-                std::cout<<"\n"<<it->Hash<<" "<<it->Title;
+
         }
 
 
